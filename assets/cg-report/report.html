@@ -1,0 +1,1222 @@
+<!DOCTYPE html
+  PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
+<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Computer Graphics - Project Report</title>
+
+  <link href="resources/bootstrap.min.css" rel="stylesheet">
+  <link href="resources/offcanvas.css" rel="stylesheet">
+  <link href="resources/custom2014.css" rel="stylesheet">
+  <link href="resources/twentytwenty.css" rel="stylesheet" type="text/css" />
+  <link href="resources/custom-styles.css" rel="stylesheet">
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        processEscapes: true
+      }
+    });
+  </script>
+  <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  <script type="text/javascript">
+    window.onload = () => {
+      document.getElementById("year").innerHTML = new Date().getFullYear();
+    }
+  </script>
+</head>
+
+<body>
+
+  <div class="sidenav">
+    <a href="#">Home</a> <br>
+    <hr class="solid">
+    <a href="#motivation">Motivational Image</a> <br>
+    <hr class="solid">
+    <a href="#featuresGianluca">Features Gianluca Moro</a>
+    <ul>
+      <li><a href="#imageTextures">Image Textures</a></li>
+      <li><a href="#normalMapping">Normal Mapping</a></li>
+      <li><a href="#texturedAreaEmitters">Textured Area Emitters</a></li>
+      <li><a href="#denoising">NL-means Denoising</a></li>
+      <li><a href="#participating-media">Heterogeneous Participating Media</a></li>
+    </ul>
+    <hr class="solid">
+    <a href="#featuresEric">Features Eric Enzler</a>
+    <ul>
+      <li><a href="#directional">Directional Light</a></li>
+      <li><a href="#motionblur">Motion Blur</a></li>
+      <li><a href="#procedural">Procedural Volume</a></li>
+      <li><a href="#environment">Environment Map</a></li>
+      <li><a href="#advancedCamera">Advanced Camera</a></li>
+      <li><a href="#disney">Disney BSDF</a></li>
+    </ul>
+    <hr class="solid">
+    <a href="#finalImage">Final Image</a>
+
+    <p class="copyright"><i>Copyright &copy; <span id="year"></span> <br> Gianluca Moro & Eric Enzler</i></p>
+  </div>
+
+  <div class="main">
+    <div class="container headerBar">
+      <h1>Project Report - Gianluca Moro & Eric Enzler</h1>
+    </div>
+
+    <div class="container contentWrapper">
+      <div class="pageContent">
+
+        <em>
+          Note: As discussed with Professor Papas and the TAs, since Eric had to do obligatory military service during
+          the project, we were able to submit later until 17. January 2023.
+        </em>
+
+        <div id="motivation">
+          <h1>Motivational Image</h1>
+          <p>
+            For our final image, we wanted to show the beauty of space. To fit the "Out of Place" theme,
+            we wanted to put something random into the scene: For example a car "driving" in space.
+          </p>
+
+          <div>
+            <img style="width: 70%; display: block; margin: auto;" src="images/asteroids.jpg" alt="Asteroids">
+            <p style="text-align: center;">Source: <a href="https://pixabay.com/images/id-1422642/">pixabay.com</a></p>
+          </div>
+        </div>
+
+        <br> <br>
+
+        <div id="featuresGianluca">
+          <h1>Features: Gianluca Moro</h1>
+
+          <div id="imageTextures">
+            <h2>1. Image Textures [5 points]</h2>
+            <dl>
+              <dt>Modified Files</dt>
+              <dd><code>src/image_texture.cpp</code></dd>
+
+              <dt>External libraries</dt>
+              <dd><a href="https://github.com/nothings/stb">stb_image</a></dd>
+
+              <dt>Theory</dt>
+              <dd>
+                <a href="https://www.pbr-book.org/3ed-2018/Texture/Image_Texture">PBR Book, 10.4 Image Texture</a> <br>
+                <a href="https://moodle-app2.let.ethz.ch/mod/resource/view.php?id=804475">CG Lecture Slides 27.09.2022,
+                  Polygonal Meshes & Texture Mapping</a>
+              </dd>
+            </dl>
+
+            <h3>Implementation</h3>
+            <p>To load the texture images, I am using the <a href="https://github.com/nothings/stb">stb_image</a>
+              library, which is already imported in <code>ext/nanogui</code>. This allows us to load png and jpg images
+              into 8-bit integer arrays. <br>
+              To sample a the texture, the <code>eval()</code> method takes the uv coordinates of the desired point as
+              input. We then convert the uv coordinates to image coordinates as follows:
+              $$
+              \begin{align}
+              x &= u \cdot width \\
+              y &= (1 - v) \cdot height
+              \end{align}
+              $$
+              Note the $(1 - v)$ because otherwise, the texture would be flipped upside down. <br>
+              We can then get the RGB values from the image data array as follows:
+              $$
+              \begin{align}
+              index &= (x + y \cdot width) \cdot num\_channels \\
+              R &= image[index] / 255 \\
+              G &= image[index+1] / 255 \\
+              B &= image[index+2] / 255 \\
+              \end{align}
+              $$
+              where $num\_channels$ is the number of channels in the image: 4 for RGBA images, and 3 for RGB images.
+              The final color is also converted to linear RGB using the <code>nori::Color3f::toLinearRGB()</code>
+              method.<br> <br>
+
+              I also added a <code>scale</code> property, which allows to shrink (scale &gt; 1), and repeat the texture
+              to fit the surface, or make it bigger (scale &lt; 1). <br>
+              Furthermore, I added a <code>shift</code> property, which allows to translate the texture. This is for
+              example useful to rotate the texture on a sphere.
+            </p>
+
+            <h3>Validation</h3>
+            <p>To validate the implementation, I created identical scenes and rendered them in nori and <a
+                href="https://mitsuba.readthedocs.io/en/latest/index.html">Mitsuba</a>. The images are almost identical,
+              only the brightness is slightly different because nori and mitsuba use somewhat different values for the
+              same light intensity. However, the textures are applied the identically.
+            </p>
+            <div class="twentytwenty-container">
+              <img src="images/features/image-textures/mitsuba-image-texture.png" alt="mitsuba3" class="img-responsive">
+              <img src="images/features/image-textures/image-texture.png" alt="Mine" class="img-responsive">
+              <img src="images/features/image-textures/no-image-texture.png" alt="no textures" class="img-responsive">
+            </div>
+            <p>
+              The duck model and texture are from <a
+                href="https://free3d.com/3d-model/bird-v1--282209.html">free3d.com</a>,
+              the earth texture from <a href="https://www.solarsystemscope.com/textures/">solarsystemscope.com</a>,
+              and the ground texture from <a
+                href="https://3dtextures.me/2020/05/11/ground-wet-pebbles-001/">3dtextures.me</a>.
+            </p>
+          </div>
+
+          <br>
+
+          <div id="normalMapping">
+            <h2>2. Normal Mapping [5 points]</h2>
+            <dl>
+              <dt>Modified Files</dt>
+              <dd>
+                <code>src/normal_map.cpp</code> <br>
+                <code>src/mesh.cpp</code> <br>
+                <code>src/sphere.cpp</code> <br>
+                <code>include/nori/texture.h</code> <br>
+                <code>include/nori/bsdf.h</code>
+              </dd>
+
+              <dt>External libraries</dt>
+              <dd><a href="https://github.com/nothings/stb">stb_image</a></dd>
+
+              <dt>Theory</dt>
+              <dd><a href="https://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/">
+                  OpenGL Tutorial 13: Normal Mapping</a>
+              </dd>
+            </dl>
+
+            <p>Normal mapping can be used to fake the lighting of bumps and dents of meshes without adding more
+              polygons.
+            </p>
+
+            <h3>Implementation</h3>
+            <p>The normal map is an RGB image where each texel encodes the normal at that point: $normal = \left( 2
+              \cdot
+              color_{RGB} \right) - 1$. <br>
+              Loading the image and mapping the $uv$ coordinate to image coordinates is done the same way as for the
+              Image Textures. The only difference is that now the <code>eval()</code> method returns the normal vector
+              instead of the color. <br>
+              To apply the normal mapping, we do the following for each detected intersection:
+            <ul>
+              <li>Compute tangent and bitangent at intersection point. We want the tangent vector to be in the same
+                direction as the texture coordinates. For this, I followed the steps explained in the <a
+                  href="https://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/">
+                  OpenGL Normal Mapping</a> tutorial:
+                $$
+                \begin{align}
+                deltaPos1 &= vertex_1 - vertex_0 \\
+                deltaPos2 &= vertex_2 - vertex_0 \\
+                deltaUV1 &= uv_1 - uv_0 \\
+                deltaUV2 &= uv_2 - uv_0 \\
+                r &= \frac{1}{deltaUV1_x \cdot deltaUV2_y - detlaUV1_y \cdot deltaUV2_x} \\
+                tangent &= r \cdot (deltaPos1 \cdot deltaUV2_y - deltaPos2 \cdot deltaUV1_y) \\
+                bitangent &= r \cdot (deltaPos2 \cdot deltaUV1_x - deltaPos1 \cdot deltaUV2_x)
+                \end{align}
+                $$
+                where $detlaPos1, deltaPos2$ are polygon edges, and $deltaUV1, deltaUV2$ the edges in the uv space.
+              </li>
+              <li>Calculate the new normal at the intersection point using the normal map and the $uv$ coordinates:
+                $new\_normal = \left( 2 \cdot color_{RGB} \right) - 1$
+              </li>
+              <li>Use the tangent, bitangent and the mesh normal to compute a tangent space coordinate frame,
+                and then use this frame to convert the new normal to world coordinates.
+              </li>
+              <li>Set the converted normal as the mesh shading frame normal.</li>
+            </ul>
+            </p>
+
+            <h3>Validation</h3>
+            <p>
+              To validate the implementation, I created identical scenes and rendered them in nori and <a
+                href="https://mitsuba.readthedocs.io/en/latest/index.html">Mitsuba</a>. The first scene is an analytical
+              sphere, and the second scene a mesh plane. Both containing a single pointlight source above the object.
+              <br>
+              The images are almost identical, only the brightness is again slightly different because nori and mitsuba
+              use somewhat different values for the same light intensity. <br>
+              The normal textures are applied identically, and the effect of the normal mapping is clearly visible,
+              when comparing to only having the texture applied without normal mapping.
+            </p>
+
+            <!--TODO (gimoro): fix lighting-->
+            <div class="twentytwenty-container">
+              <img src="images/features/normal-mapping/mitsuba-normal-mapping-sphere.png" alt="mitsuba3"
+                class="img-responsive">
+              <img src="images/features/normal-mapping/normal-mapping-sphere.png" alt="Mine" class="img-responsive">
+              <img src="images/features/normal-mapping/no-normal-mapping-sphere.png" alt="Texture only"
+                class="img-responsive">
+            </div>
+            <br>
+            <div class="twentytwenty-container">
+              <img src="images/features/normal-mapping/mitsuba-normal-mapping-wall.png" alt="mitsuba3"
+                class="img-responsive">
+              <img src="images/features/normal-mapping/normal-mapping-wall.png" alt="Mine" class="img-responsive">
+              <img src="images/features/normal-mapping/no-normal-mapping-wall.png" alt="Texture only"
+                class="img-responsive">
+            </div>
+
+            <p>The texture and normal maps are from <a
+                href="https://3dtextures.me/2022/05/21/stylized-stone-floor-005/">3dtextures.me</a>
+            </p>
+          </div>
+
+          <br>
+
+          <div id="texturedAreaEmitters">
+            <h2>3. Textured Area Emitters [5 points]</h2>
+
+            <i>Note: As discussed with TA, Xianyao Zhang, I am doing "Textured Area Emitters" instead of
+              "Mip-Mapping" to stay in the 60 points limit.</i> <br> <br>
+
+            <dl>
+              <dt>Modified Files</dt>
+              <dd>
+                <code>src/arealight.cpp</code> <br>
+                <code>src/mesh.cpp</code> <br>
+                <code>src/sphere.cpp</code> <br>
+                <code>src/path_mis, path_mats, photonmapper, direct_mis, direct_mats, direct_ems.cpp</code> <br>
+                <code>include/nori/emitter.h</code> <br>
+                <code>include/nori/shape.h</code>
+              </dd>
+            </dl>
+
+            <h3>Implementation</h3>
+            <p>For this feature, I modified the arealight to also accept a texture as the radiance. Now when sampling
+              the emitter, it will use the uv coordinates to look up the color in the texture and return that
+              value as the radiance. The lookup is the same as for Image Textures, described above. <br>
+              To be able to lookup the texture, I added a <code>Point2f uv</code> property to the
+              <code>EmitterQueryRecord</code> and to the <code>ShapeQueryRecord</code>. The <code>uv</code> property of
+              the <code>EmitterQueryRecord</code> is updated in the <code>Integrator::Li</code> methods of the different
+              integrators. This uv value is updated when the ray intersection point is an emitter. <br>
+              The <code>uv</code> property of the <code>ShapeQueryRecord</code> is updated in the
+              <code>Shape::sampleSurface</code> method in <code>mesh.cpp</code> and <code>sphere.cpp</code>.
+              This uv value is updated when we sample a point on the emitter surface.
+            </p>
+
+            <h3>Validation</h3>
+            <p>To validate the implementation, I created identical scenes and redered them in nori and <a
+                href="https://mitsuba.readthedocs.io/en/latest/index.html">Mitsuba</a>. Both scenes contain either an
+              analytical sphere or a mesh, and a ground plane. The sphere resp. mesh is the only emitter in the scene.
+              The <code>path_mis</code> integrator with 64 samples per pixel was used to render the scene. <br>
+              The images look very similar: The mean error between the images is only 0.003 for both scenes, calculated
+              using the <a href="https://github.com/tom94/tev">tev</a> tool.
+            </p>
+            <div class="twentytwenty-container">
+              <img src="images/features/textured-emitters/mitsuba-textured-emitter-sphere.png" alt="mitsuba3"
+                class="img-responsive">
+              <img src="images/features/textured-emitters/textured-emitter-sphere.png" alt="Mine"
+                class="img-responsive">
+            </div>
+            <br>
+            <div class="twentytwenty-container">
+              <img src="images/features/textured-emitters/mitsuba-textured-emitter-mesh.png" alt="mitsuba3"
+                class="img-responsive">
+              <img src="images/features/textured-emitters/textured-emitter-mesh.png" alt="Mine" class="img-responsive">
+            </div>
+          </div>
+
+          <br>
+
+          <div id="denoising">
+            <h2>4. NL-means Denoising using Pixel Variance Estimates [15 points]</h2>
+            <dl>
+              <dt>Modified Files</dt>
+              <dd>
+                <code>src/render.cpp</code> <br>
+                <code>src/denoise/denoise.py</code>
+              </dd>
+
+              <dt>External Libraries</dt>
+              <dd>
+                <a href="https://github.com/opencv/opencv-python">opencv-python</a> <br>
+                <a href="https://numpy.org/">numpy</a>
+              </dd>
+
+              <dt>Theory</dt>
+              <dd>
+                <a href="https://moodle-app2.let.ethz.ch/mod/resource/view.php?id=833825">
+                  CG Lecture Slides 25.11.2022, Image-Based Denoising & Denoising with Deep Learning
+                </a>
+              </dd>
+            </dl>
+
+            <h3>Implementation</h3>
+            <p>
+              To perform NL means denoising, we need the pixel variance. To estimate the non-uniform pixel variance,
+              I used the following formula:
+              $$
+              \begin{align}
+              var[p] &= (\text{sample variance}) \cdot \frac{1}{n} \\
+              &= \left( \left( \frac{\sum_{i=1}^n x_i^2}{n} - \left( \frac{\sum_{i=1}^n x_i}{n} \right)^2 \right)
+              \cdot \frac{n}{n-1} \right) \cdot \frac{1}{n}
+              \end{align}
+              $$
+              To estimate the variance, I updated the <code>RenderThread::renderScene</code> in <code>render.cpp</code>.
+              Now when rendering a scene, it will also output a <code>image_variance.exr</code> file, containing the
+              estimated variances. <br>
+              I implemented the fast NL-means denoising algorithm given in the
+              <a href="https://moodle-app2.let.ethz.ch/mod/resource/view.php?id=833825">lecture slides</a> in python,
+              using opencv and numpy. The algorithm is well explained in the lecture slides. For the $d^2$ function,
+              I used the non-uniform variance variant. <br>
+              OpenCV is used to read and write the image files, and to apply the boxfilter convolution.
+              Numpy is used to perform efficient array operations.
+            </p>
+
+            <h3>Validation</h3>
+            <p>
+              To validate the denoising, I rendered the cbox scene using the <code>path_mis</code> integrator,
+              with 256 samples per pixel, which produced quite a noisy image. I also rendered the same scene
+              with 8192 samples per pixel as a baseline to compare the denoised image to. <br>
+              Rendering and denoising the 256 spp image (with $r=10, f=3, k=0.45$) took in total about 2.2 minutes
+              (1.9 minutes for rendering and 0.3 minutes for denosing), while the 8192 spp took about 51 minutes to
+              render. So, we have a speedup of around 23. <br>
+              The denoised image looks very similar to the high spp version. However, there are some faint patterns
+              visible, especially on the walls. With some parameter tweaking, those could probably be reduced even more,
+              but this would also increase the denoising time.
+            </p>
+            <div class="twentytwenty-container" style="width: 70%;">
+              <img src="images/features/denoise/cbox_path_mis-256.png" alt="256 spp render" class="img-responsive">
+              <img src="images/features/denoise/cbox_path_mis-256_denoised.png" alt="256 spp denoised"
+                class="img-responsive">
+              <img src="images/features/denoise/cbox_path_mis-8192.png" alt="8192 spp render" class="img-responsive">
+            </div>
+          </div>
+
+          <br>
+
+          <div id="participating-media">
+            <h2>5. Heterogeneous Participating Media [30 points]</h2>
+            <dl>
+              <dt>Modified Files</dt>
+              <dd>
+                <code>include/nori/medium.h, src/homogeneous_medium.cpp, src/heterogeneous_medium.cpp</code> <br>
+                <code>include/nori/phasefunction.h, src/phasefunction.cpp</code> <br>
+                <code>src/vol_path.cpp</code> <br>
+                <code>include/nori/perlinnoise.h</code> <br>
+                <code>include/nori/scene.h</code>
+              </dd>
+
+              <dt>External Libraries</dt>
+              <dd>
+                <a href="https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb">
+                  NanoVDB (A lightweight version of OpenVDB)
+                </a> <br>
+                <a href="https://github.com/daniilsjb/perlin-noise">
+                  github.com/daniilsjb/perlin-noise (3D Perlin Noise)
+                </a>
+              </dd>
+
+              <dt>Theory</dt>
+              <dd>
+                <a
+                  href="https://moodle-app2.let.ethz.ch/pluginfile.php/1449689/mod_resource/content/2/14-participating-media-I.pdf">
+                  CG Lecture Slides 04.11.2022, Participating Media I</a> <br>
+                <a
+                  href="https://moodle-app2.let.ethz.ch/pluginfile.php/1452153/mod_resource/content/1/15-participating-media-II.pdf">
+                  CG Lecture Slides 08.11.2022, Participating Media II</a> <br>
+                <a
+                  href="https://www.pbr-book.org/3ed-2018/Light_Transport_II_Volume_Rendering/Sampling_Volume_Scattering">
+                  PBR Book, 15.2 Sampling Volume Scattering</a> <br>
+                <a
+                  href="https://www.pbr-book.org/3ed-2018/Light_Transport_II_Volume_Rendering/Volumetric_Light_Transport">
+                  PBR Book, 15.3 Volumetric Light Transport
+                </a> <br>
+                <a
+                  href="https://www.csie.ntu.edu.tw/~cyy/courses/rendering/09fall/lectures/handouts/chap17_volume_4up.pdf">
+                  Volume and Participating Media, Digital Image Synthesis, Yung -Yu Chuang
+                </a>
+              </dd>
+            </dl>
+
+            <p>
+              Participating media allows us to render clouds and fog. I implemented both homogeneous and
+              heterogeneous participating media using a volumetric path tracer.
+            </p>
+
+            <div id="participatingMediaImplementation">
+              <h3>Implementation</h3>
+              <p>
+                This feature was the most complicated to implement for me, and took the most amount of time to finish.
+                For the implementation, I mainly followed the theory covered in the lecture slides and the PBR book.
+              </p>
+
+              <h4>Phase Function</h4>
+              <p>
+                To sample a new scattering direction, I implemented both the isotropic and Henyey Greenstein
+                phase functions, as defined in the lecture slides. The pdf functions are as follows:
+                $$
+                \begin{align}
+                f_{p\text{ISO}} (\vec{w}', \vec{w}) &= \frac{1}{4\pi} \\
+                f_{p\text{HG}} (\theta) &= \frac{1}{4\pi} \frac{1 - g^2}{\left( 1 + g^2 - 2g \text{cos}(\theta)
+                \right)^{3/2}} \\
+                \text{where: } \; \; \text{cos}(\theta) &= \frac{1}{2g} \left( 1 + g^2 -
+                \left( \frac{1 - g^2}{1 - g + 2g\xi} \right)^2 \right)
+                \end{align}
+                $$
+              </p>
+
+              <h4>Medium</h4>
+              <p>
+                The medium needs the ability to sample a free path and calculate the transmittance along a ray. <br>
+                For the homogeneous medium, I first tried the simplified variant with $Tr(t) = e^{-\sigma_t \cdot t}$
+                (<a href="https://en.wikipedia.org/wiki/Beer%E2%80%93Lambert_law">Beer-Lambert law)</a>,
+                but I couldn't get it to work properly since this always resulted in a completely black medium. <br>
+                Therefore, I am using Delta Tracking for both the homogeneous and heterogeneous medium.
+                The idea is to start at the beginning of the ray and take a random step along the ray, according to
+                $t \texttt{ += } -log(1 - \xi) \cdot inv\_max\_density / \sigma_t$. <br>
+                To sample a free path, we continue Delta Tracking until we either exit the medium,
+                or until $current\_density / max\_density \gt \xi$, where $\xi$ is a random number between 0 and 1.
+                The first case means we have no medium interaction, while the second case indicates a medium
+                interaction, and we return the $albedo$ color. <br>
+                To calculate the transmittance, we continue Delta Tracking until we exit the medium, while in every
+                iteration we update $t$ as before and also update the transmittance as:
+                $tr \texttt{ *= } 1 - max(0, current\_density \cdot inv\_max\_density)$, where the initial value is $tr
+                = 1$.
+              </p>
+              <p>
+                Each medium is described by:
+                $$
+                \begin{align}
+                \text{Absorption coefficient } & \sigma_a \\
+                \text{Scattering coefficient } & \sigma_s \\
+                \text{Extinction coefficient } & \sigma_t = \sigma_a + \sigma_s \\
+                \text{Albedo } & \alpha = \sigma_s / \sigma_t
+                \end{align}
+                $$
+              </p>
+
+              <p>
+                All media types use a bounding box, defined by the <code>center</code> and <code>size</code> xml scene
+                parameters, to define where the medium should be placed. <br>
+                While the density function for the homogeneous medium is always constant, for the heterogeneous medium
+                it is spatially varying. For the homogeneous medium, we can specify the density with the
+                <code>max_density</code> value in the xml scene file.
+                For the heterogeneous medium, I added support for different density types, which can be specified with
+                the <code>density_type</code> parameter:
+              <ul>
+                <li><b>Exponential:</b> $d(p) = max\_density \cdot exp(-b \cdot h)$, where $h$ is the height in the
+                  direction
+                  of the up-vector
+                </li>
+                <li><b>Volume Grid:</b> The density at a point is read from a volume grid (.nvdb) file</li>
+                <li><b>Perlin Noise:</b> The density at a point is calculated using a 3D perlin noise function.
+                  See <a href="#procedural">Procedural Volumes</a> for more information.</li>
+              </ul>
+              </p>
+
+              <h5>Exponential</h5>
+              <p>
+                The exponential density function slowly decreases the density in the up direction. The parameter
+                <code>b</code> and the up-direction vector <code>up_dir</code> can be specified in the xml file.
+                This density function allows us to create nice foggy scenes.
+              </p>
+
+              <h5>Volume Grid</h5>
+              <p>
+                To read the density values from a volume grid file, I am using
+                <a href="https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb">NanoVDB</a>,
+                which is a header-only library to read NanoVDB files, which are similar to
+                <a href="https://www.openvdb.org/">OpenVDB</a> files. <br>
+                To get the density of a specific point in our scene, I am first projecting the point inside our medium
+                bounding box to the unit cube. Then I can use this position to determine the corresponding point
+                inside the bounding box of the grid defined in the vdb file.
+              </p>
+
+              <h5>Perlin Noise</h5>
+              <p>
+                This was implemented by Eric as part of the Procedural Volumes feature.
+                For implementation details, please have a look at
+                <a href=#procedural> Eric's section on Procedural Volumes</a>.
+              </p>
+
+              <br>
+              <h4>Volumetric Path Tracer</h4>
+              <p>
+                To render the participating medium, I implemented a Volumetric Path Tracer <code>vol_path</code>.
+                I based this integrator on the <code>path_mis</code> integrator implemented as part of the homeworks,
+                and added the functionality to handle medium interaction. <br>
+                First, we sample a random medium which the ray intersects. For this medium, we sample the free path,
+                and if we detect a medium interaction, we sample a random emitter. If the emitter is visible from the
+                sampled medium point, we calculate the transmittance along the shadowray through all media in the scene
+                by multiplying each transmittance value together. <br>
+                We then use the phase function to sample a new direction for the recursive ray. If the new intersection
+                point is an emitter, we update the $w_{mat}$ value similar to how it's done in the
+                <code>path_mis</code> integrator. <br>
+                If we have no medium interaction, we basically do the same as in the <code>path_mis</code> integrator,
+                while also including the calculated transmittance along the ray.
+              </p>
+
+              <p>Below is the pseudocode for the volumetric path tracer:</p>
+              <pre><code>Li = 0, t = 1
+while (true) {
+    medium = scene.getRandomMedium()
+    albedo = scene.sampleFreePath()
+
+    if (mediumInteraction) {
+        russianRoulette()
+        t *= albedo
+        Vector3f scatterDirection
+        pdf_mat = medium.phaseFunction().sample(scatterDirection)
+        randomEmitter = scene.getRandomEmitter()
+
+        if (!shadowRayOccluded) {
+            Color3f Tr = 1
+            for (med : scene.getAllMedia()) {
+                Tr *= med.Tr(shadowRay)
+            }
+
+            // update pdf_em and w_em
+
+            Li += t * Tr * randomEmitter.sample() * numEmitters * pdf_mat
+        }
+
+        recursiveRay = Ray3f(mediumInteractionPoint, scatterDirection)
+
+        // update w_mat
+    }
+    else if (!mediumInteraction && !surfaceInteraction) {
+        break
+    }
+    else {
+        // add contribution from material sampling
+        //    including transmittance
+        
+        russianRoulette()
+
+        // add contribution from emitter sampling
+        //    including transmittance
+        //    update w_em
+
+        // update recursiveRay
+        
+        // update w_mat
+    }
+}</code></pre>
+            </div>
+
+            <div id="participatingMediaValidation">
+              <h3>Validation</h3>
+              <h4>Volumetric Path Tracer</h4>
+              <p>
+                To validate my volumetric path tracer, I rendered identical scenes without any participating media
+                present, using my <code>vol_path</code> integrator and the <code>path_mis</code> integrator
+                implemented as part of the homeworks. <br>
+                As expected, the resulting images look identical.
+              </p>
+              <div class="twentytwenty-container" style="width: 60%;">
+                <img src="images/features/medium/cbox.png" alt="vol_path" class="img-responsive">
+                <img src="images/features/medium/cbox_path-mis.png" alt="path_mis" class="img-responsive">
+              </div>
+
+              <h4>Homogeneous</h4>
+              <p>
+                To validate the homogeneous medium, I rendered identical scenes using my implementation and
+                <a href="https://mitsuba.readthedocs.io/en/latest/index.html">Mitsuba</a>. <br>
+                The images look very similar. Note that the position of the medium cube is not 100% identical,
+                because I use a different approach to define the medium position,
+                and thus conversion caused some misalignment. <br>
+                $\sigma_a = 2, \sigma_s = 0.5$ and isotropic phase function.
+              </p>
+              <div class="twentytwenty-container" style="width: 60%;">
+                <img src="images/features/medium/cbox_homo.png" alt="mine" class="img-responsive">
+                <img src="images/features/medium/mitsuba-cbox_homo.png" alt="mitsuba3" class="img-responsive">
+              </div>
+
+              <br>
+
+              <h4>Heterogeneous: Exponential Density</h4>
+              <p>
+                No comparision with mitsuba3 renderer because it does not support Exponential density.
+                However, the resulting images look correct to me. <br>
+                $\sigma_a = 2, \sigma_s = 1, b = 5$, with different $up\_dir$.
+              </p>
+              <div class="twentytwenty-container" style="width: 60%;">
+                <img src="images/features/medium/cbox_hetero-exp-right.png" alt="up_dir=(1,0,0)" class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-exp-up.png" alt="up_dir=(0,1,0)" class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-exp-front.png" alt="up_dir=(0,0,1)" class="img-responsive">
+              </div>
+
+              <br>
+
+              <p>
+                In the following scene, the medium cube has been scaled up to fill the entire scene.
+                Together with exponential density, this creates a nice fog effect. <br>
+                $\sigma_a = 1, \sigma_s = 4, b = 5$
+              </p>
+              <div class="twentytwenty-container" style="width: 60%;">
+                <img src="images/features/medium/cbox.png" alt="no medium" class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-exp-full.png" alt="heterogenous, exp density"
+                  class="img-responsive">
+              </div>
+
+              <br>
+
+              <h4>Heterogeneous: Volume Grid Density</h4>
+              <p>
+                Unfortunately, no comparision with mitsuba3 because mitsuba3 does not support OpenVDB
+                or NanoVDB, but requires .vol files, and I was unable to convert our NanoVDB files to
+                .obj files. <br>
+                However, the resulting image looks as expected: The expected shapes are clearly visible. <br>
+                The vdb files are from the <a href="https://www.openvdb.org/download/">OpenVDB</a> website,
+                and converted to NanaoVDB files using the converter provided by
+                <a href="https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb">NanoVDB</a>.
+              </p>
+              <div class="twentytwenty-container" style="width: 60%;">
+                <img src="images/features/medium/cbox_hetero-grid.png" alt="cloud" class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-grid-bunny.png" alt="bunny" class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-grid-fire.png" alt="fire" class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-grid-smoke.png" alt="smoke" class="img-responsive">
+              </div>
+
+              <br>
+
+              <p>
+                As you can see, we can also render colored medium by specifying the $\sigma_a, \sigma_s$
+                accordingly. <br>
+                Gray: ($\sigma_a = [1, 1, 1], \sigma_s = [4, 4, 4]$),
+                Red: ($\sigma_a = [1, 1, 1], \sigma_s = [4, 0.5, 0.5]$),
+                Blue: ($\sigma_a = [1, 1, 1], \sigma_s = [0.5, 0.5, 4]$)
+              </p>
+              <div class="twentytwenty-container" style="width: 60%;">
+                <img src="images/features/medium/cbox_hetero-grid.png" alt="gray" class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-grid-scale.png" alt="gray + density_scale=2"
+                  class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-grid-red.png" alt="red" class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-grid-blue.png" alt="blue" class="img-responsive">
+              </div>
+
+              <br>
+
+              <p>
+                Furthermore, I also implemented the ability to rotate the volume grids. 
+              </p>
+              <div class="twentytwenty-container" style="width: 60%;">
+                <img src="images/features/medium/cbox_hetero-grid-bunny.png" alt="0°" class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-grid-rotation_180.png" alt="180°" class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-grid-rotation_90.png" alt="90°" class="img-responsive">
+                <img src="images/features/medium/cbox_hetero-grid-rotation_270.png" alt="270°" class="img-responsive">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <br> <br>
+
+        <div id="featuresEric">
+          <h1>Features: Eric Enzler</h1>
+          <div id="directional">
+            <h2>1. Directional Light [5 points]</h2>
+
+            <dl>
+              <dt>Modified Files</dt>
+              <dd>
+                <code>src/directionallight.cpp</code> <br>
+              </dd>
+
+              <dt>Theory</dt>
+              <dd>
+                <a href="https://www.pbr-book.org/3ed-2018/Light_Sources/Distant_Lights">PBR Book, 12.4 Distant
+                  Lights</a> <br>
+              </dd>
+            </dl>
+
+            <h3>Implementation</h3>
+            <p>For this special light source, I used the implementation of the book. Unfortunately, I could not make use
+              of the bounding box of the scene.
+              In the implementation, I am currently using a hardcoded value for the radius. This overestimates the power
+              of the light a bit but still gives good results.
+            </p>
+
+            <h3>Validation</h3>
+            <p>To validate the implementation, we created identical scenes and rendered them in nori and <a
+                href="https://mitsuba.readthedocs.io/en/latest/index.html">Mitsuba</a>. Both scenes contain two meshes
+              and a ground plane. The direction of the light source and the color
+              of the light are the same. The two images show no differences with this direction of the light. In other
+              cases, our implementation resultet in a slightly brighter picture because
+              of the overestimation described above.
+            </p>
+            <div class="twentytwenty-container">
+              <img src="images/features/directionallight/directional1_mine.png" alt="Mine" class="img-responsive">
+              <img src="images/features/directionallight/directional1_ref.png" alt="Mitsuba" class="img-responsive">
+            </div>
+            <br>
+            <p> In the scene below, our implementation results in a brighter image than the one from mitsuba.
+            </p>
+            <div class="twentytwenty-container">
+              <img src="images/features/directionallight/directional2_mine.png" alt="Mine" class="img-responsive">
+              <img src="images/features/directionallight/directional2_ref.png" alt="Mitsuba" class="img-responsive">
+              <img src="images/features/directionallight/directional_colored.png" alt="Colored" class="img-responsive">
+            </div>
+          </div>
+          <br>
+          <div id="motionblur">
+            <h2>2. Motion Blur for cameras [5 points]</h2>
+            <dl>
+              <dt>Modified Files</dt>
+              <dd>
+                <code>src/perspective.cpp</code> <br>
+                <code>src/render.cpp</code> <br>
+                <code>src/ttest.cpp</code> <br>
+                <code>nori/camera.h</code> <br>
+              </dd>
+            </dl>
+
+            <h3>Implementation</h3>
+            <p>The implementation of this feature was hard. There is no information about it in the PBRT book and the
+              blog
+              posts online did not help me well either.
+              The basic behind this type of motion blur is obviously that the camera needs to move in some way. At
+              first,
+              I tried to do this by hand, meaning that I setup my own transformation matrices and then multiplied them
+              with the camera's matrix.
+              This did not work at all and I had to use a simpler approach where I defined the transformation matrix
+              directly in the xml file. This means that for motionblur we need to specify the point where the camera
+              will
+              move to.
+              As we already have defined the origin of the camera, I programmed some sort of interpolation between the
+              two
+              matrices. The camera will move a tiny bit towards the final position depending on the contribution of the
+              sample. This contribution factor is based
+              on the value of $m_{progress}$ which is defined in the <code>render.cpp</code>file.
+            </p>
+            <h3>Validation</h3>
+            <p> Validation for this type of blur is purely visually. For the scene, I let the camera move a small
+              fraction
+              to the side. The blur applies instantly and is very intense. In the renderer one can notice the movement
+              of
+              the camera and its effect on the bluriness.</p>
+            <div class="twentytwenty-container">
+              <img src="images/features/advanced-camera/motionblur.png" alt="Motionblur" class="img-responsive">
+              <img src="images/features/advanced-camera/simple.png" alt="Normal" class="img-responsive">
+            </div>
+          </div>
+          <br>
+          <div id="procedural">
+            <h2>3. Procedural Volume [5 points]</h2>
+            <dl>
+              <dt>Modified Files</dt>
+              <dd>
+                <code>src/heterogeneous_medium.cpp</code> <br>
+                <code>include/nori/perlinnoise.h</code> <br>
+              </dd>
+
+              <dt>External Libraries</dt>
+              <dd>
+                <a href="https://github.com/daniilsjb/perlin-noise">
+                  github.com/daniilsjb/perlin-noise (3D Perlin Noise)
+                </a>
+              </dd>
+
+              <dt>Theory</dt>
+              <dd>
+                <a
+                  href="https://moodle-app2.let.ethz.ch/pluginfile.php/1449689/mod_resource/content/2/14-participating-media-I.pdf">
+                  CG Lecture Slides 04.11.2022, Participating Media I</a> <br>
+                <a
+                  href="https://moodle-app2.let.ethz.ch/pluginfile.php/1452153/mod_resource/content/1/15-participating-media-II.pdf">
+                  CG Lecture Slides 08.11.2022, Participating Media II</a> <br>
+                <a
+                  href="https://www.pbr-book.org/3ed-2018/Light_Transport_II_Volume_Rendering/Sampling_Volume_Scattering">
+                  PBR Book, 15.2 Sampling Volume Scattering</a> <br>
+                <a
+                  href="https://www.pbr-book.org/3ed-2018/Light_Transport_II_Volume_Rendering/Volumetric_Light_Transport">
+                  PBR Book, 15.3 Volumetric Light Transport
+                </a> <br>
+                <a
+                  href="https://www.csie.ntu.edu.tw/~cyy/courses/rendering/09fall/lectures/handouts/chap17_volume_4up.pdf">
+                  Volume and Participating Media, Digital Image Synthesis, Yung -Yu Chuang
+                </a>
+              </dd>
+            </dl>
+
+            <h3>Implementation</h3>
+            <p>I implemented this feature together with Gianluca as he is the creator of the Heterogeneous Participating
+              Media. After he explained me the functions and files, it was significantly easier to implement the
+              procedural volume. For the feature, I created a new header file for perlin noise with the help of an
+              existing github repo. To add the noise to the medium, I define a new type of density that is calculated
+              with the 3D perlin noise.
+            </p>
+            <p>To apply the density, I can choose between a cube and a sphere. More complex shapes are not supported.
+            </p>
+            <h3>Validation</h3>
+            <p> I created Perlin spheres and cubes and varied the frequency and density parameters inside the cbox
+              scene.</p>
+            <div class="twentytwenty-container">
+              <img src="images/features/medium/cbox_hetero-noise.png" alt="Perlin Sphere" class="img-responsive">
+            </div>
+            <br>
+            <div class="twentytwenty-container">
+              <img src="images/features/medium/cbox_hetero-noise-dense.png" alt="Cube with high density & high freq"
+                class="img-responsive">
+              <img src="images/features/medium/cbox_hetero-noise-nodense.png" alt="Cube with small density & high freq"
+                class="img-responsive">
+              <img src="images/features/medium/cbox_hetero-noise-nofreq.png" alt="Cube with small density & small freq"
+                class="img-responsive">
+            </div>
+          </div>
+          <br>
+          <div id="environment">
+            <h2>4. Environment Map [15 points]</h2>
+            <dl>
+              <dt>Modified Files</dt>
+              <dd>
+                <code>src/environment.cpp</code> <br>
+                <code>nori/common.h</code> <br>
+              </dd>
+              <dt>Theory</dt>
+              <dd>
+                <a href="https://www.pbr-book.org/3ed-2018/Light_Sources/Infinite_Area_Lights">
+                  PBR Book, 12.6 Infinite Area Lights</a> <br>
+                <a
+                  href="https://www.pbr-book.org/3ed-2018/Light_Transport_I_Surface_Reflection/Sampling_Light_Sources#">
+                  PBR Book, 14.2 Sampling Light Sources</a> <br>
+                <a href="https://helloacm.com/cc-function-to-compute-the-bilinear-interpolation/">Interpolation blog</a>
+                <br>
+                <a href="https://forum.unity.com/threads/bi-lerp.175105/">Lerp for interpolation</a>
+              </dd>
+            </dl>
+
+            <h3>Implementation</h3>
+            <p> For the implementation, I followed the approach of the book.
+              First, as the Environment Map is just an infinite arealight, I cloned the file and began to modify it.
+              In the constructor, I build the Environment Map using the <code> Bitmap("filename")</code> method. With
+              this
+              bitmap,
+              I directly build a matrix of intensities and use this matrix to calculate the row-PDF, row-CDF as well as
+              the 2D conditional PDF and CDF.
+            </p>
+            <p> For the <code>sample()</code> method, I first applied discrete sampling (unlike continuous sampling
+              which
+              is used in the book) to find the {i,j}-coordinates.
+              Then I mapped these coordinates to $\theta$ and $\phi$ to be able to call
+              <code> sphericalDirection(theta,phi)</code> and set <code>lRec.wi</code> of the EmitterQueryRecord.
+              With this information I was able to calculate the Jacobian matrix and the final return value.
+            </p>
+            <p> For the <code>eval()</code> and <code> pdf()</code> methods, I calculate the u and v coordinates
+              given the EmitterQueryRecord using the approach from the <code>sphere.cpp</code> file. Given the
+              coordinates, we can access values of the bitmap and the conditional PDF/CDF matrices.
+              In the <code> eval() </code> method, I first tried to average the neighboring pixels by myself.
+              Unfortunately, with this approach
+              I created a blur filter and the resulting images were not pretty to look at. After doing some more
+              research,
+              I decided to use bilinear interpolation.
+              With the help of two blog posts mentioned above in the Theory listing</a>, I managed to implement the
+              necessary formula with some
+              minor adjustments for out-of-bounds errors. The resulting image was now less blurry than before, but I was
+              not satisfied. In an effort to create
+              an unblurred alternative, I set a new boolean property which lets the user decide
+              whether he wants to use interpolation or not to find the {u,v}-values.
+              If the flag is not set, I will simply do the following:
+            <pre><code> 
+              if(!m_interpolate){
+                int u = int(round(x));
+                int v = int(round(y));
+                return m_envBitMap(u,v);
+              }</code>
+          </pre>
+            The direct approach is faster in terms of rendering and results in images that are less blurred compared to
+            interpolation.
+            As this might come in handy for the final image, I was eager to leave this option in the final code.
+            </p>
+
+            <h3>Validation</h3>
+            <p>To validate the implementation, we created identical scenes and rendered them in nori and <a
+                href="https://mitsuba.readthedocs.io/en/latest/index.html">Mitsuba</a>. Both scenes contain a dielectric
+              sphere in the middle and an environment map. The images look very similar but the most noticable
+              difference
+              is the blur in my own implementation. There are also some small differences in spots that are very intense
+              in terms of light.
+            </p>
+            <p>
+              The first images uses an Environment map with a 2K-Resolution. The rendering is relatively fast: It takes
+              about 20 seconds.
+              The second image uses an Environment map with a 4K-Resolution. The rendering is slow: It takes about 2
+              minutes to complete.
+            </p>
+            <div class="twentytwenty-container">
+              <img src="images/features/environment/sand_mine.png" alt="Mine" class="img-responsive">
+              <img src="images/features/environment/sand_direct_mine.png" alt="Mine, No Interpolation"
+                class="img-responsive">
+              <img src="images/features/environment/sand_ref.png" alt="Mitsuba" class="img-responsive">
+            </div>
+            <br>
+            <div class="twentytwenty-container">
+              <img src="images/features/environment/christmas_mine.png" alt="Mine" class="img-responsive">
+              <img src="images/features/environment/christmas_direct_mine.png" alt="Mine, No Interpolation"
+                class="img-responsive">
+              <img src="images/features/environment/christmas_ref.png" alt="Mitsuba" class="img-responsive">
+            </div>
+          </div>
+          <br>
+          <div id="advancedCamera">
+            <h2>5. Advanced Camera [15 points]</h2>
+            <dl>
+              <dt>Modified Files</dt>
+              <dd>
+                <code>src/perspective.cpp</code> <br>
+              </dd>
+              <dt>Theory</dt>
+              <dd>
+                <a href="https://www.pbr-book.org/3ed-2018/Camera_Models/Projective_Camera_Models">
+                  PBR Book, 6.2 Projective Camera Models</a> <br>
+                <a href="http://l2program.co.uk/900/concentric-disk-sampling">
+                  Concentric disk sampling - blog</a> <br>
+                <a href="https://en.wikipedia.org/wiki/Distortion_(optics)">
+                  Distortion </a> <br>
+              </dd>
+            </dl>
+
+            <h3>Implementation</h3>
+            <h4>Depth of Field</h4>
+            <p> For DoF I followed the implementation of the PBRT book which explains the process very clearly. Thanks
+              to
+              the book I managed to implement this feature very quick. </p>
+
+            <h4>Lens Distortion</h4>
+            <p> For the distortion, I did not find any good information in the book. After doing some research on the
+              topic and seeing the same formula over and over again, I implemented a simple but effective way to distort
+              the lens.
+              For this, I need two warping parameters $K_1$ and $K_2$ and also the norm of the x and y coordinates on
+              the
+              camera's near plane.
+              Then, I simply calculate the distortion value with the following function:
+            <pre>
+              <code> 
+              float distortionFunction(float r) const{
+                if(r == 0)return 1.f;
+                auto fin = (1.0f + K1 * powf(r,2) + K2*powf(r,4));
+                return fin;
+              }
+            </code>
+          </pre>
+            and multiply the x and y coordinates on the near plane with this value.
+            </p>
+
+            <h4>Bokeh</h4>
+            <p> Bokeh was hard to implement as there were simply no resources available in the book. As always I did
+              some
+              research and found that bokeh is a special type of blur occuring usually with depth of field.
+              To implement the feature, I coupled it with DoF: Meaning that bokeh only works in settings where DoF is
+              enabled. For the effect, I modified the warping method that is used in DoF. I calculate an offset for each
+              point <code>Point2f offset = 2.f * sample - Vector2f(1, 1);</code>
+              and then apply concentric disk sampling directly. This allows for bokeh in its circular form - which in my
+              opinion is the most beautiful and relevant one. </p>
+
+            <h3>Validation</h3>
+            <p> For DoF, since I followed the implementation of the book, I wanted to confirm my work with the <a
+                href="https://mitsuba.readthedocs.io/en/latest/index.html">Mitsuba</a> renderer. For this I created a
+              simple scene with a plane and a skull. I switched between a short and a long focal distance to get an
+              image
+              where the skull is in focus and one where it is not. The effect seems to work but my pictures are less
+              bright, which is due to the light source intensity. </p>
+            <div class="twentytwenty-container">
+              <img src="images/features/advanced-camera/12_0p1_mine.png" alt="Mine at 12" class="img-responsive">
+              <img src="images/features/advanced-camera/12_0p1_ref.png" alt="Mitsuba at 12" class="img-responsive">
+            </div>
+            <br>
+            <div class="twentytwenty-container">
+              <img src="images/features/advanced-camera/27_0p1_mine.png" alt="Mine at 27" class="img-responsive">
+              <img src="images/features/advanced-camera/27_0p1_ref.png" alt="Mitsuba at 27" class="img-responsive">
+            </div>
+            <br>
+            <p>The following scenes were created without a sibling in Mitsuba. The scene consists of multiple teapots.
+              In
+              the first image, the focal distance is kept short: The focus point is more towards the left side of the
+              picture, where the teapots are close. The first image is crossed with an image of the same focal distance
+              but a different lens radius. The second image has a larger focal length: Its focus point shifts more to
+              the
+              right of the picture.</p>
+            <div class="twentytwenty-container">
+              <img src="images/features/advanced-camera/mine_01.png" alt="Mine, short/0.1" class="img-responsive">
+              <img src="images/features/advanced-camera/mine_02.png" alt="Mine, short/0.2" class="img-responsive">
+            </div>
+            <div class="twentytwenty-container">
+              <img src="images/features/advanced-camera/mine_far_01.png" alt="Mine, long/0.1" class="img-responsive">
+            </div>
+
+            <br>
+            <br>
+            <p>Bokeh Images were rendered using a distant light source that shines on multiple spheres. I fixed the
+              focal
+              length and increased the lens radius three times. The bokeh effect is only noticable for very blurry
+              images
+              -
+              which is conformant with the real bokeh effect in photography.
+              The validation of this feature is purely visual. </p>
+            <div class="twentytwenty-container">
+              <img src="images/features/advanced-camera/bokeh_01.png" alt="Bokeh 0.1" class="img-responsive">
+              <img src="images/features/advanced-camera/bokeh_00.png" alt="Normal" class="img-responsive">
+            </div>
+            <div class="twentytwenty-container">
+              <img src="images/features/advanced-camera/bokeh_03.png" alt="Bokeh 0.3" class="img-responsive">
+              <img src="images/features/advanced-camera/bokeh_00.png" alt="Normal" class="img-responsive">
+            </div>
+            <div class="twentytwenty-container">
+              <img src="images/features/advanced-camera/bokeh_05.png" alt="Bokeh 0.5" class="img-responsive">
+              <img src="images/features/advanced-camera/bokeh_00.png" alt="Normal" class="img-responsive">
+            </div>
+
+            <br>
+            <br>
+            <p>For the camera distortion, I simply rendered an environment map and added the distortion effect. The
+              validation
+              of this feature is purely visual. However, the tiled floor of the environment map makes it easy to verify
+              that
+              the feature does what it should.</p>
+            <div class="twentytwenty-container" style="width: 700px;">
+              <img src="images/features/advanced-camera/distortion.png" alt="Barrel Distortion" class="img-responsive">
+              <img src="images/features/advanced-camera/no_distortion.png" alt="Normal" class="img-responsive">
+            </div>
+            <div class="twentytwenty-container" style="width: 700px;">
+              <img src=" images/features/advanced-camera/distortion2.png" alt="Pincushion Distortion"
+                class="img-responsive">
+              <img src="images/features/advanced-camera/no_distortion.png" alt="Normal" class="img-responsive">
+            </div>
+            <br>
+            <br>
+            Thanks to the new camera features, we are now able to create images like the one below. It displays a
+            dielectric
+            rocket on a stand with minor depth of field effect and a barrel distortion.
+            <div class="twentytwenty-container" style="width: 75%;">
+              <img src="images/features/advanced-camera/final.png" alt="Putting everything together"
+                class="img-responsive">
+            </div>
+
+          </div>
+          <div id="disney">
+            <h2>6. Disney BSDF [15 points]</h2>
+            <dl>
+              <dt>Modified Files</dt>
+              <dd>
+                <code>src/disney.cpp</code> <br>
+                <code>src/warp.cpp</code> <br>
+                <code>src/warptest.cpp</code> <br>
+              </dd>
+              <dt>Theory</dt>
+              <dd>
+                <a
+                  href="https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf">
+                  Disney Paper</a> <br>
+                <a href="https://schuttejoe.github.io/post/disneybsdf/">Blog post on Disney BSDF</a>
+              </dd>
+            </dl>
+
+            <h3>Implementation</h3>
+            <p> Out of the 10 possible parameters, I implemented specular, metallic, roughness, sheen and clearcoat. For
+              most of them, I used the original disney paper as reference. Since sheen is only mentioned briefly in the
+              disney paper,
+              I additionaly took inspiration from a blog post on the Disney BSDF. For specular and clearcoat, I
+              implemented new warping functions called GTR1 and GTR2 (Generalized-Trowbridge-Reit distributions). I also
+              added more than the 5 required parameters to my model because I wanted to see the effects of them in
+              action.
+            </p>
+            <p>
+              For clearcoat, I was not happy with the implementation that the Disney paper proposed. Officially, the
+              term
+              looks like this: <code>(m_clearcoat * Gr * Fr * Dr) * 0.25</code> where the intensity is
+              only $0.25$ and the effect of clearcoat is not visible without sliding the exposure up to 100%. To counter
+              this, I simply
+              added a new variable <code> (m_clearcoat * Gr * Fr * Dr) * m_clearcoatIntensity </code>. This variable is
+              currently hardcoded at $1.5$ and gives (in my opinion) a much better and clearer clearcoat effect.
+            </p>
+            <p>
+              For sheen, as mentioned above, I did not find a lot of useful information in the disney paper. The
+              original
+              idea for it is given only in the appendix of the paper and after using said idea, I was not happy with the
+              result. I then did some research online and found a blog post that proposed a slightly different formula
+              for
+              sheen.
+              I implemented it but sadly was not able to reconstruct the effect so clearly as it is depicted on the
+              disney reference image.
+            </p>
+            <h3>Validation</h3>
+            <p> For the Validation of the new warping functions, I changed the warptest file accordingly and ran the
+              tests. Both warping functions succeeded.
+            </p>
+            <div class="twentytwenty-container">
+              <img src="images/features/disney/gtr1.PNG" alt="GTR1" class="img-responsive">
+            </div>
+            <br>
+            <div class="twentytwenty-container">
+              <img src="images/features/disney/gtr1PDF.PNG" alt="GTR1 PDF" class="img-responsive">
+            </div>
+            <br>
+            <div class="twentytwenty-container">
+              <img src="images/features/disney/gtr2.PNG" alt="GTR2" class="img-responsive">
+            </div>
+            <br>
+            <div class="twentytwenty-container">
+              <img src="images/features/disney/gtr2PDF.PNG" alt="GTR2 PDF" class="img-responsive">
+            </div>
+            <br>
+            <p>
+              For the actual disney parameters, I setup a scene with five teapots and increased the parameter strength
+              from left to right. The other parameters were held constant. For clearcoat, as mentioned above, I changed
+              the factor such that the effect is better visible.
+            </p>
+            <div class="twentytwenty-container">
+              <img src="images/features/disney/specular.png" alt="Specular" class="img-responsive">
+            </div>
+            <br>
+            <div class="twentytwenty-container">
+              <img src="images/features/disney/metallic.png" alt="Metallic" class="img-responsive">
+            </div>
+            <br>
+            <div class="twentytwenty-container">
+              <img src="images/features/disney/roughness.png" alt="Roughness" class="img-responsive">
+            </div>
+            <br>
+            <div class="twentytwenty-container">
+              <img src="images/features/disney/clearCoat.png" alt="Clearcoat" class="img-responsive">
+            </div>
+            <br>
+            <p> The effect of sheen is not visible very clearly but one can see some more of the white light on the
+              rightmost teapot, especially at the top.</p>
+            <div class="twentytwenty-container">
+              <img src="images/features/disney/sheen.png" alt="Sheen" class="img-responsive">
+            </div>
+            <br>
+            <p> For validation, I have included an image from the reference paper of disney where all the parameters are
+              shown.</p>
+            <div class="twentytwenty-container">
+              <img src="images/features/disney/disney_ref.PNG" alt="Disney reference" class="img-responsive">
+            </div>
+
+
+          </div>
+        </div>
+
+        <br> <br>
+
+        <div id="finalImage">
+          <h1>Final Image</h1>
+          <div class="twentytwenty-container" style="width: 90%;">
+            <img src="images/final-image.png" alt="Final Space Scene">
+          </div>
+
+          <!-- TODO (enzlere): models, textures, etc. sources? -->
+
+          <p>
+            Our final image was rendered using the volumetric path tracer integrator with 256 samples per pixel.
+            We also denoised the image using the method described above.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="resources/bootstrap.min.js"></script>
+  <script src="resources/jquery.event.move.js"></script>
+  <script src="resources/jquery.twentytwenty.js"></script>
+
+
+  <script>
+    $(window).load(function () { $(".twentytwenty-container").twentytwenty({ default_offset_pct: 0.5 }); });
+  </script>
+
+</body>
+
+</html>

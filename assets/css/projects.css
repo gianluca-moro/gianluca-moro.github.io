@@ -1,0 +1,41 @@
+.project-button {
+  margin-right: 1em;
+  margin-bottom: 0.5em;
+}
+
+.project-button button {
+  background-color: rgb(28, 43, 72, 0.5);
+  color: #fff;
+  width: 12em;
+  font-size: 14px;
+  padding: 0.5em;
+}
+
+.project-button i {
+  padding-right: 0.6em;
+}
+
+.project-button-spacing {
+  display: none;
+}
+
+@media screen and (max-width: 600px) {
+  .project-button-spacing {
+    display: inline;
+  }
+}
+
+img {
+  border: thin solid whitesmoke;
+  width: 85%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 16px;
+}
+
+@media screen and (max-width: 600px) {
+  img {
+    width: 100%;
+  }
+}

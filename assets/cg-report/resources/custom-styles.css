@@ -1,0 +1,52 @@
+dt {
+    float: left;
+    clear: left;
+    width: 10em;
+    text-align: right;
+    font-weight: bold;
+    color: black;
+}
+
+dd {
+    padding-left: 12em;
+    margin-bottom: 0.5em;
+}
+
+.sidenav {
+    width: 15%;
+    min-width: 250px;
+    height: calc(100% - 4.5em);
+    position: fixed;
+    z-index: 1;
+    margin: 2em 0.5em;
+    padding: 0.5em;
+    font-size: 150%;
+    color: whitesmoke;
+    background-color: #385f6e;
+    overflow-x: hidden;
+}
+
+.sidenav li {
+    margin-left: -1em;
+    font-size: 90%;
+}
+
+.sidenav a {
+    text-decoration: none;
+    color: whitesmoke;
+}
+.sidenav a:hover {
+    color: #b6deff;
+}
+
+.copyright {
+    position: fixed;
+    bottom: 0;
+    font-size: 60%;
+}
+
+.main {
+    width: 85%;
+    max-width: calc(100% - 270px);
+    float: right;
+}

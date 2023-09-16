@@ -25,7 +25,7 @@
   }
 }
 
-img {
+.project-img {
   border: thin solid whitesmoke;
   width: 85%;
   display: block;
@@ -35,7 +35,7 @@ img {
 }
 
 @media screen and (max-width: 600px) {
-  img {
-    width: 100%;
+  .project-img {
+    width: 100%
   }
 }

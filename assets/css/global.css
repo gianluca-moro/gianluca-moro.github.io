@@ -16,6 +16,9 @@ body {
 
 
 /* Basic */
+html {
+  scrollbar-color: #abc8ff #1c2b48;
+}
 
 body {
   overflow-x: hidden;
@@ -257,7 +260,7 @@ html {
   top: 0;
   left: 0;
   color: #1c2b48;
-  background-color: #fff;
+  background-color: #abc8ff;
   width: 60px;
   height: 60px;
   text-align: center;
@@ -273,7 +276,7 @@ html {
   cursor: pointer;
   text-align: right;
   color: #1c2b48;
-  background-color: #fff;
+  background-color: #abc8ff;
   width: 100%;
   height: 60px;
   text-align: center;
@@ -553,6 +556,10 @@ button:hover {
     right: 3%;
     left: 3%;
   }
+
+  .section-heading {
+    padding: 20px 12px;
+  }  
 
   .section-item {
     padding: 12px;

@@ -338,6 +338,10 @@ button:hover {
   border-bottom: 3px solid rgba(250, 250, 250, 0.25);
 }
 
+.section:last-child {
+  border: none;
+}
+
 .section-heading {
   text-align: center;
   padding: 40px 45px;
@@ -350,7 +354,7 @@ button:hover {
 }
 
 .section-heading .line-dec {
-  width: 60px;
+  width: 4.5em;
   height: 3px;
   background-color: #1c2b48;
   margin: 10px auto;
@@ -379,6 +383,7 @@ button:hover {
 .section-item h5 {
   font-style: italic;
   transition: all 0.5s;
+  margin-bottom: 0.8em;
 }
 
 .section-item p {
@@ -419,7 +424,7 @@ button:hover {
 }
 
 .section-item:hover .project-button button {
-  background-color: rgb(28, 43, 72);
+  background-color: rgb(22, 55, 119);
 }
 
 .section-item:hover .project-button button:hover {

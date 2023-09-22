@@ -79,8 +79,8 @@
           <div class="line-dec"></div>
           <span>
             I have recently obtained my Master's degree in computer science at ETH Zurich with focus
-            on Data Management Systems. I am highly interested in cloud computing technology and data processing
-            systems.
+            on Data Management Systems. I am highly interested in cloud computing technology and data
+            management / processing systems.
           </span>
         </div>
       </div>
@@ -338,9 +338,6 @@
   <script src="assets/js/lightbox.js"></script>
   <script src="assets/js/custom.js"></script>
   <script>
-    //according to loftblog tut
-    $(".main-menu li:first").addClass("active");
-
     var showSection = function showSection(section, isAnimate) {
       var direction = section.replace(/#/, ""),
         reqSection = $(".section").filter(
@@ -386,6 +383,9 @@
     $(window).scroll(function () {
       checkSection();
     });
+
+    $(".main-menu li:first").addClass("active");
+    checkSection();
   </script>
 </body>
 

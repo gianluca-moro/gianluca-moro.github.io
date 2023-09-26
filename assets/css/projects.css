@@ -39,3 +39,12 @@
     width: 100%
   }
 }
+
+.project-skills {
+  padding-bottom: 0.4em;
+  margin-bottom: 0.4em;
+  border-bottom-color: whitesmoke;
+  border-bottom-width: 1px;
+  border-bottom-style: dashed;
+  font-size: 85%;
+}

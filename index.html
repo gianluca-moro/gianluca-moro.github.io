@@ -35,7 +35,7 @@
         <div class="container">
 
           <div class="image">
-            <a href="#"><img src="assets/images/author-image.png" alt="" /></a>
+            <img src="assets/images/author-image.png" />
           </div>
 
           <div class="author-content">
@@ -64,7 +64,7 @@
           </div>
 
           <div class="copyright-text">
-            <p>Copyright &copy; 2023, Gianluca Moro</p>
+            <p>Copyright &copy; <span id="year">2023</span>, Gianluca Moro</p>
           </div>
 
         </div>
@@ -164,6 +164,9 @@
           <h4>Evaluating Data Processing Datacenter Applications in Serverless Environments</h4>
           <h5>Master's Thesis, <a href="https://systems.ethz.ch/" target="_blank">Systems Group</a> ETH Zurich,
             February 2023 - September 2023</h5>
+          <p class="project-skills">
+            Skills: Bash, Python, AWS Lambda, Amazon EC2, Apache Spark, Apache Drill, Docker
+          </p>
           <p>
             Serverless platforms provide a high degree of elasticity and fine-grained billing. Even though the
             serverless programming model is very popular for short-lived, event-driven applications, it is ill-suited
@@ -192,6 +195,9 @@
           <h4>Computer Graphics Project</h4>
           <h5><a href="https://cgl.ethz.ch/teaching/cg22/home.php" target="_blank">Computer Graphics</a> course project,
             ETH Zurich, 2022</h5>
+          <p class="project-skills">
+            Skills: C++, Python
+          </p>
           <p style="margin-bottom: 6px;">
             During this course, we implemented a renderer to create physically-accurate images. <br>
             We extended the Nori v2 ray tracer by adding the following features:
@@ -231,6 +237,9 @@
           <h4>Hybris - The Rise and Fall of Atlantis</h4>
           <h5><a href="https://gtc.inf.ethz.ch/education/game-programming-laboratory.html" target="_blank">
               Game Programming Laboratory</a> course project, ETH Zurich, 2022</h5>
+          <p class="project-skills">
+            Skills: C# (MonoGame)
+          </p>
           <p>
             Hybris (from Ancient Greek húbris) refers to excessive pride or dangerous overconfidence. It was due to
             these traits that Atlantis, an island whose naval power besieged Athens in times long past, fell out of
@@ -246,13 +255,16 @@
             3D models were designed in Blender.
           </p>
 
-
           <a href="assets/images/projects/hybris.png" data-lightbox="lightbox-hybris" data-title="Hybris ingame footage"
             class="project-img">
             <img src="assets/images/projects/hybris.png" alt="hybris-image"></a>
 
           <a class="project-button" href="https://hybrisgame.itch.io/hybris" target="_blank">
-            <button style="width: 17em;"><i class="bi bi-download"></i>Download on itch.io</button>
+            <button><i class="bi bi-download"></i>Download</button>
+          </a>
+          <div class="project-button-spacing"><br><br></div>
+          <a class="project-button" href="https://youtu.be/4pkfWe7bkGw?si=FHo1u0FBG2jZ6yMJ" target="_blank">
+            <button><i class="bi bi-youtube"></i>Trailer</button>
           </a>
         </div>
 
@@ -260,6 +272,9 @@
           <h4>Wildfire Visualization</h4>
           <h5><a href="https://cgl.ethz.ch/teaching/visualization22/home.php" target="_blank">Scientific
               Visualization</a> course project, ETH Zurich, 2022</h5>
+          <p class="project-skills">
+            Skills: Python
+          </p>
           <p>
             In this project, we wrote an interactive program to visualize the spread of wildfires using real-life data.
             We can use our visualization to analyze the effects of wind and terrain on the spread and temperature of the
@@ -284,6 +299,9 @@
           <h4>"Seeing" Temperature - Integration of IR Camera into the HoloLens 2</h4>
           <h5><a href="https://www.cvg.ethz.ch/teaching/mrlab/2021/index.php" target="_blank">Mixed Reality</a>
             course project, ETH Zurich, 2021</h5>
+          <p class="project-skills">
+            Skills: C# (Unity), Python
+          </p>
           <p>
             The goal of this project is to display the thermal information of people to the user by integrating an
             infra-red camera connected to a Raspberry Pi computer into the HoloLens 2 system. In the end, the HoloLens
@@ -306,6 +324,9 @@
           <h4>Storage Format for Almost-Homogeneous Data Sets</h4>
           <h5>Bachelors's Thesis, <a href="https://systems.ethz.ch/" target="_blank">Systems Group</a> ETH Zurich,
             March 2020 - July 2020</h5>
+          <p class="project-skills">
+            Skills: Python, Java, JSON, Apache Parquet
+          </p>
           <p>
             JSON is a popular data format which is very flexible since no schema needs to be defined and therefore the
             data can also be heterogeneous. But this flexiblity comes at the price of performance. However, in
@@ -338,6 +359,10 @@
   <script src="assets/js/lightbox.js"></script>
   <script src="assets/js/custom.js"></script>
   <script>
+    window.onload = () => {
+      document.getElementById("year").innerHTML = new Date().getFullYear();
+    }
+
     var showSection = function showSection(section, isAnimate) {
       var direction = section.replace(/#/, ""),
         reqSection = $(".section").filter(

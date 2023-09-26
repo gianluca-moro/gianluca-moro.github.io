@@ -174,20 +174,20 @@ html {
   display: inline-block;
   text-align: center;
   line-height: 40px;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.4);
   color: #fff;
-  font-size: 14px;
+  font-size: 22px;
   transition: all 0.5s;
 }
 
 .menu .social-network ul li a:hover {
   background-color: #fff;
-  color: #1c2b48;
+  color: #2250ac;
 }
 
 .menu .copyright-text {
   position: relative;
-  margin-top: 60px;
+  margin-top: 100px;
 }
 
 .menu .copyright-text p {
@@ -383,7 +383,7 @@ button:hover {
 .section-item h5 {
   font-style: italic;
   transition: all 0.5s;
-  margin-bottom: 0.8em;
+  margin-bottom: 0.4em;
 }
 
 .section-item p {
@@ -429,6 +429,10 @@ button:hover {
 
 .section-item:hover .project-button button:hover {
   background-color: #5884ac;
+}
+
+.section-item:hover .project-skills {
+  border-bottom-color: black;
 }
 
 .section-item .service-icon {
@@ -554,6 +558,14 @@ button:hover {
 
   .responsive-nav {
     display: inline-block;
+  }
+
+  .menu .copyright-text {
+    margin-top: 20px;
+  }
+
+  .menu .social-network {
+    margin-top: 40px;
   }
 
   .section {

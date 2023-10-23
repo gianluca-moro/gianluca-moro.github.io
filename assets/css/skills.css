@@ -1,0 +1,19 @@
+.skills {
+    text-align: left;
+}
+.skills h4 {
+    font-size: 130%;
+}
+.skills .col-sm {
+    padding: 0;
+}
+
+@media screen and (max-width: 600px) {
+    .skills ul {
+        margin-left: 3.5em;
+    }
+    .skills h4 {
+        margin-top: 1.5em;
+        text-align: center;
+    }
+}

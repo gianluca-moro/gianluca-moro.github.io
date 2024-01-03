@@ -447,6 +447,12 @@ button:hover {
   transition: all 0.5s;
 }
 
+.section-item .raiffeisen-logo {
+  width: 9em;
+  height: 1.5em;
+  background-image: url(../images/work-experience/raiffeisen.png);
+}
+
 .section-item .snb-logo {
   width: 6em;
   height: 3em;

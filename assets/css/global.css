@@ -62,7 +62,7 @@ img {
 ul {
   font-size: 18px;
   padding: 0;
-  margin: 0 2em;
+  margin: 0 1.5em;
 }
 
 html {
@@ -142,6 +142,7 @@ html {
   height: 140px;
   border-radius: 50%;
   text-align: center;
+  box-shadow: 0 0 20px #b7f1ff;
 }
 
 .menu .author-content {
@@ -215,15 +216,12 @@ html {
   color: inherit;
 }
 
-.menu {
-  text-align: center;
-}
-
 .menu::-webkit-scrollbar {
   display: none;
 }
 
 .menu {
+  text-align: center;
   left: 10%;
   transition: -webkit-transform 233ms cubic-bezier(0, 0, 0.21, 1);
   -webkit-overflow-scrolling: touch;
@@ -401,6 +399,7 @@ button:hover {
 
 .section-item:hover {
   background-color: rgba(232, 239, 255, 0.8);
+  box-shadow: 0 0 30px black;
 }
 
 .section-item:hover h4 {
@@ -469,6 +468,11 @@ button:hover {
   background-image: url(../images/education/eth_logo_kurz_pos.svg);
 }
 
+@media screen and (min-width: 1281px) {
+  .menu {
+    box-shadow: 0 0 30px black;
+  }
+}
 
 
 @media screen and (max-width: 1680px) {
